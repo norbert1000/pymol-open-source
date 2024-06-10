@@ -742,18 +742,12 @@ bool cif_file::parse_bcif(const char* bytes, std::size_t size)
   auto dict = msgobj.as<std::map<std::string, msgpack::object>>();
 
   auto dataBlocksRaw = dict["dataBlocks"].as<std::vector<msgpack::object>>();
-  pymol::cif_detail::bcif_data* currentFrame{};
-  auto& dataDict = m_datablocks;
   for (const auto& block : dataBlocksRaw) {
     auto blockMap = block.as<std::map<std::string, msgpack::object>>();
     auto header = blockMap["header"].as<std::string>();
     auto categoriesRaw = blockMap["categories"].as<std::vector<msgpack::object>>();
-    auto& new_block = m_datablocks[header];
-    new_block.m_data = pymol::cif_detail::bcif_data{};
-    currentFrame = &std::get<pymol::cif_detail::bcif_data>(new_block.m_data);
-    pymol::cif_data& categories = dataDict[header];
-    categories.m_data = pymol::cif_detail::bcif_data{};
-    auto& categoriesData = std::get<pymol::cif_detail::bcif_data>(categories.m_data);
+    m_datablocks[header].m_data = pymol::cif_detail::bcif_data{};
+    auto& categoriesData = std::get<pymol::cif_detail::bcif_data>(m_datablocks[header].m_data);
     for (const auto& category : categoriesRaw) {
       auto categoryMap = category.as<std::map<std::string, msgpack::object>>();
       auto categoryName = categoryMap["name"].as<std::string>();
@@ -773,7 +767,6 @@ bool cif_file::parse_bcif(const char* bytes, std::size_t size)
         columns[columnName] = std::move(vec);
       }
     }
-    dataDict[header] = std::move(categories);
   }
   return true;
 }
