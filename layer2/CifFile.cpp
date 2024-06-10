@@ -746,8 +746,7 @@ bool cif_file::parse_bcif(const char* bytes, std::size_t size)
     auto blockMap = block.as<std::map<std::string, msgpack::object>>();
     auto header = blockMap["header"].as<std::string>();
     auto categoriesRaw = blockMap["categories"].as<std::vector<msgpack::object>>();
-    m_datablocks[header].m_data = pymol::cif_detail::bcif_data{};
-    auto& categoriesData = std::get<pymol::cif_detail::bcif_data>(m_datablocks[header].m_data);
+    auto& categoriesData = m_datablocks[header].m_data.emplace<pymol::cif_detail::bcif_data>();
     for (const auto& category : categoriesRaw) {
       auto categoryMap = category.as<std::map<std::string, msgpack::object>>();
       auto categoryName = categoryMap["name"].as<std::string>();
@@ -763,8 +762,7 @@ bool cif_file::parse_bcif(const char* bytes, std::size_t size)
         auto dataRaw = columnMap["data"].as<std::map<std::string, msgpack::object>>();
         auto dataData = dataRaw["data"].as<std::vector<unsigned char>>();
         auto dataEncoding = dataRaw["encoding"].as<std::vector<std::map<std::string, msgpack::object>>>();
-        auto vec = parse_bcif_decode(dataData, dataEncoding);
-        columns[columnName] = std::move(vec);
+        columns[columnName] = parse_bcif_decode(dataData, dataEncoding);
       }
     }
   }
